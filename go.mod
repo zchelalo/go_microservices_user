@@ -3,6 +3,7 @@ module github.com/zchelalo/go_microservices_user
 go 1.22.5
 
 require (
+	github.com/go-kit/kit v0.13.0
 	github.com/joho/godotenv v1.5.1
 	github.com/zchelalo/go_microservices_domain v0.0.2
 	github.com/zchelalo/go_microservices_meta v0.0.2
@@ -11,6 +12,8 @@ require (
 )
 
 require (
+	github.com/go-kit/log v0.2.0 // indirect
+	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect

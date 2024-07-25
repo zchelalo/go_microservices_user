@@ -1,10 +1,8 @@
 package user
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"strconv"
+	"context"
+	"errors"
 
 	"github.com/zchelalo/go_microservices_meta/meta"
 )
@@ -17,7 +15,7 @@ const (
 )
 
 type (
-	Controller func(w http.ResponseWriter, req *http.Request)
+	Controller func(ctx context.Context, request interface{}) (response interface{}, err error)
 
 	Endpoints struct {
 		Create Controller
@@ -56,213 +54,182 @@ type (
 func MakeEndpoints(service Service, config Config) Endpoints {
 	return Endpoints{
 		Create: makeCreateEndpoint(service),
-		Get:    makeGetEndpoint(service),
-		GetAll: makeGetAllEndpoint(service, config),
-		Update: makeUpdateEndpoint(service),
-		Delete: makeDeleteEndpoint(service),
+		// Get:    makeGetEndpoint(service),
+		// GetAll: makeGetAllEndpoint(service, config),
+		// Update: makeUpdateEndpoint(service),
+		// Delete: makeDeleteEndpoint(service),
 	}
 }
 
 func makeCreateEndpoint(service Service) Controller {
-	return func(w http.ResponseWriter, req *http.Request) {
-		var request CreateRequest
-		if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			// json.NewEncoder(w).Encode(ErrorResponse{
-			// 	Error: err.Error(),
-			// })
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  fmt.Sprintf("Invalid request format, %v", err.Error()),
-			})
-			return
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(CreateRequest)
+
+		if req.FirstName == "" {
+			return nil, errors.New("first name is required")
 		}
 
-		if request.FirstName == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  "First name is required",
-			})
-			return
+		if req.LastName == "" {
+			return nil, errors.New("last name is required")
 		}
 
-		if request.LastName == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  "Last name is required",
-			})
-			return
-		}
-
-		user, err := service.Create(request.FirstName, request.LastName, request.Email, request.Phone)
+		user, err := service.Create(ctx, req.FirstName, req.LastName, req.Email, req.Phone)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  err.Error(),
-			})
-			return
+			return nil, err
 		}
 
-		w.WriteHeader(http.StatusCreated)
-
-		json.NewEncoder(w).Encode(&Response{
-			Status: statusSuccess,
-			Data:   user,
-		})
+		return user, nil
 	}
 }
 
-func makeGetEndpoint(service Service) Controller {
-	return func(w http.ResponseWriter, req *http.Request) {
-		id := req.PathValue("id")
+// func makeGetEndpoint(service Service) Controller {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		id := req.PathValue("id")
 
-		user, err := service.Get(id)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  err.Error(),
-			})
-			return
-		}
+// 		user, err := service.Get(id)
+// 		if err != nil {
+// 			w.WriteHeader(http.StatusNotFound)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  err.Error(),
+// 			})
+// 			return
+// 		}
 
-		w.WriteHeader(http.StatusOK)
+// 		w.WriteHeader(http.StatusOK)
 
-		// json.NewEncoder(w).Encode(map[string]string{
-		// 	"payload": response,
-		// })
-		json.NewEncoder(w).Encode(&Response{
-			Status: statusSuccess,
-			Data:   user,
-		})
-	}
-}
+// 		// json.NewEncoder(w).Encode(map[string]string{
+// 		// 	"payload": response,
+// 		// })
+// 		json.NewEncoder(w).Encode(&Response{
+// 			Status: statusSuccess,
+// 			Data:   user,
+// 		})
+// 	}
+// }
 
-func makeGetAllEndpoint(service Service, config Config) Controller {
-	return func(w http.ResponseWriter, req *http.Request) {
-		queries := req.URL.Query()
-		filters := Filters{
-			FirstName: queries.Get("first_name"),
-			LastName:  queries.Get("last_name"),
-		}
+// func makeGetAllEndpoint(service Service, config Config) Controller {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		queries := req.URL.Query()
+// 		filters := Filters{
+// 			FirstName: queries.Get("first_name"),
+// 			LastName:  queries.Get("last_name"),
+// 		}
 
-		limit, _ := strconv.Atoi(queries.Get("limit"))
-		page, _ := strconv.Atoi(queries.Get("page"))
+// 		limit, _ := strconv.Atoi(queries.Get("limit"))
+// 		page, _ := strconv.Atoi(queries.Get("page"))
 
-		count, err := service.Count(filters)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  err.Error(),
-			})
-			return
-		}
-		meta, err := meta.New(page, limit, count, config.LimPageDef)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  err.Error(),
-			})
-			return
-		}
+// 		count, err := service.Count(filters)
+// 		if err != nil {
+// 			w.WriteHeader(http.StatusBadRequest)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  err.Error(),
+// 			})
+// 			return
+// 		}
+// 		meta, err := meta.New(page, limit, count, config.LimPageDef)
+// 		if err != nil {
+// 			w.WriteHeader(http.StatusInternalServerError)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  err.Error(),
+// 			})
+// 			return
+// 		}
 
-		users, err := service.GetAll(filters, meta.Offset(), meta.Limit())
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  err.Error(),
-			})
-			return
-		}
+// 		users, err := service.GetAll(filters, meta.Offset(), meta.Limit())
+// 		if err != nil {
+// 			w.WriteHeader(http.StatusBadRequest)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  err.Error(),
+// 			})
+// 			return
+// 		}
 
-		w.WriteHeader(http.StatusOK)
+// 		w.WriteHeader(http.StatusOK)
 
-		// json.NewEncoder(w).Encode(map[string]string{
-		// 	"payload": response,
-		// })
-		json.NewEncoder(w).Encode(&Response{
-			Status: statusSuccess,
-			Data:   users,
-			Meta:   meta,
-		})
-	}
-}
+// 		// json.NewEncoder(w).Encode(map[string]string{
+// 		// 	"payload": response,
+// 		// })
+// 		json.NewEncoder(w).Encode(&Response{
+// 			Status: statusSuccess,
+// 			Data:   users,
+// 			Meta:   meta,
+// 		})
+// 	}
+// }
 
-func makeUpdateEndpoint(service Service) Controller {
-	return func(w http.ResponseWriter, req *http.Request) {
-		id := req.PathValue("id")
+// func makeUpdateEndpoint(service Service) Controller {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		id := req.PathValue("id")
 
-		var request UpdateRequest
-		if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  fmt.Sprintf("Invalid request format, %v", err.Error()),
-			})
-			return
-		}
+// 		var request UpdateRequest
+// 		if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+// 			w.WriteHeader(http.StatusBadRequest)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  fmt.Sprintf("Invalid request format, %v", err.Error()),
+// 			})
+// 			return
+// 		}
 
-		if request.FirstName != nil && *request.FirstName == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  "First name is required",
-			})
-			return
-		}
+// 		if request.FirstName != nil && *request.FirstName == "" {
+// 			w.WriteHeader(http.StatusBadRequest)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  "First name is required",
+// 			})
+// 			return
+// 		}
 
-		if request.LastName != nil && *request.LastName == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  "Last name is required",
-			})
-			return
-		}
+// 		if request.LastName != nil && *request.LastName == "" {
+// 			w.WriteHeader(http.StatusBadRequest)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  "Last name is required",
+// 			})
+// 			return
+// 		}
 
-		if err := service.Update(id, request.FirstName, request.LastName, request.Email, request.Phone); err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  "User doesn't exist",
-			})
-			return
-		}
+// 		if err := service.Update(id, request.FirstName, request.LastName, request.Email, request.Phone); err != nil {
+// 			w.WriteHeader(http.StatusNotFound)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  "User doesn't exist",
+// 			})
+// 			return
+// 		}
 
-		w.WriteHeader(http.StatusOK)
+// 		w.WriteHeader(http.StatusOK)
 
-		json.NewEncoder(w).Encode(&Response{
-			Status: statusSuccess,
-			Data:   "User updated successfully",
-		})
-	}
-}
+// 		json.NewEncoder(w).Encode(&Response{
+// 			Status: statusSuccess,
+// 			Data:   "User updated successfully",
+// 		})
+// 	}
+// }
 
-func makeDeleteEndpoint(service Service) Controller {
-	return func(w http.ResponseWriter, req *http.Request) {
-		id := req.PathValue("id")
+// func makeDeleteEndpoint(service Service) Controller {
+// 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+// 		id := req.PathValue("id")
 
-		err := service.Delete(id)
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(&Response{
-				Status: statusError,
-				Error:  err.Error(),
-			})
-			return
-		}
+// 		err := service.Delete(id)
+// 		if err != nil {
+// 			w.WriteHeader(http.StatusNotFound)
+// 			json.NewEncoder(w).Encode(&Response{
+// 				Status: statusError,
+// 				Error:  err.Error(),
+// 			})
+// 			return
+// 		}
 
-		w.WriteHeader(http.StatusOK)
+// 		w.WriteHeader(http.StatusOK)
 
-		json.NewEncoder(w).Encode(&Response{
-			Status: statusSuccess,
-			Data:   "User deleted successfully",
-		})
-	}
-}
+// 		json.NewEncoder(w).Encode(&Response{
+// 			Status: statusSuccess,
+// 			Data:   "User deleted successfully",
+// 		})
+// 	}
+// }

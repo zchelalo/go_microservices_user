@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"log"
 
 	"github.com/zchelalo/go_microservices_domain/domain"
@@ -13,12 +14,12 @@ type (
 	}
 
 	Service interface {
-		Create(firstName, lastName, email, phone string) (*domain.User, error)
-		GetAll(filters Filters, offset, limit int) ([]domain.User, error)
-		Get(id string) (*domain.User, error)
-		Update(id string, firstName, lastName, email, phone *string) error
-		Delete(id string) error
-		Count(filters Filters) (int, error)
+		Create(ctx context.Context, firstName, lastName, email, phone string) (*domain.User, error)
+		GetAll(ctx context.Context, filters Filters, offset, limit int) ([]domain.User, error)
+		Get(ctx context.Context, id string) (*domain.User, error)
+		Update(ctx context.Context, id string, firstName, lastName, email, phone *string) error
+		Delete(ctx context.Context, id string) error
+		Count(ctx context.Context, filters Filters) (int, error)
 	}
 
 	service struct {
@@ -34,7 +35,7 @@ func NewService(log *log.Logger, repo Repository) Service {
 	}
 }
 
-func (srv *service) Create(firstName, lastName, email, phone string) (*domain.User, error) {
+func (srv *service) Create(ctx context.Context, firstName, lastName, email, phone string) (*domain.User, error) {
 	srv.log.Println("create user service")
 	user := domain.User{
 		FirstName: firstName,
@@ -42,44 +43,41 @@ func (srv *service) Create(firstName, lastName, email, phone string) (*domain.Us
 		Email:     email,
 		Phone:     phone,
 	}
-	if err := srv.repository.Create(&user); err != nil {
-		// srv.log.Println(err)
+	if err := srv.repository.Create(ctx, &user); err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func (srv *service) GetAll(filters Filters, offset, limit int) ([]domain.User, error) {
+func (srv *service) GetAll(ctx context.Context, filters Filters, offset, limit int) ([]domain.User, error) {
 	srv.log.Println("get all users service")
-	users, err := srv.repository.GetAll(filters, offset, limit)
+	users, err := srv.repository.GetAll(ctx, filters, offset, limit)
 	if err != nil {
-		// srv.log.Println(err)
 		return nil, err
 	}
 	return users, nil
 }
 
-func (srv *service) Get(id string) (*domain.User, error) {
+func (srv *service) Get(ctx context.Context, id string) (*domain.User, error) {
 	srv.log.Println("get user service")
-	user, err := srv.repository.Get(id)
+	user, err := srv.repository.Get(ctx, id)
 	if err != nil {
-		// srv.log.Println(err)
 		return nil, err
 	}
 	return user, nil
 }
 
-func (srv *service) Update(id string, firstName, lastName, email, phone *string) error {
+func (srv *service) Update(ctx context.Context, id string, firstName, lastName, email, phone *string) error {
 	srv.log.Println("update user service")
-	return srv.repository.Update(id, firstName, lastName, email, phone)
+	return srv.repository.Update(ctx, id, firstName, lastName, email, phone)
 }
 
-func (srv *service) Delete(id string) error {
+func (srv *service) Delete(ctx context.Context, id string) error {
 	srv.log.Println("delete user service")
-	return srv.repository.Delete(id)
+	return srv.repository.Delete(ctx, id)
 }
 
-func (srv *service) Count(filters Filters) (int, error) {
+func (srv *service) Count(ctx context.Context, filters Filters) (int, error) {
 	srv.log.Println("count user service")
-	return srv.repository.Count(filters)
+	return srv.repository.Count(ctx, filters)
 }
