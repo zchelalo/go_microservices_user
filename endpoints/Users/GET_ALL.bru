@@ -1,0 +1,18 @@
+meta {
+  name: GET_ALL
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{http}}://{{host}}/users?limit=1&page=2
+  body: none
+  auth: none
+}
+
+query {
+  limit: 1
+  page: 2
+  ~first_name: Lalo
+  ~last_name: Saavedra
+}

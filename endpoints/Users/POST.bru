@@ -1,0 +1,20 @@
+meta {
+  name: POST
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{http}}://{{host}}/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "first_name": "Lalo",
+    "last_name": "Saavedra",
+    "email": "eduardosaavedra687@gmail.com",
+    "phone": "6106041304"
+  }
+}

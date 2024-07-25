@@ -1,0 +1,19 @@
+meta {
+  name: UPDATE
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{http}}://{{host}}/users/241bf460-f905-47d1-a0d0-576986095d26
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "first_name": "Erick",
+    "email": "eri@gmail.com",
+    "phone": ""
+  }
+}

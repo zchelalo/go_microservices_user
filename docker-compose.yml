@@ -1,0 +1,32 @@
+version: '3.1'
+
+services:
+
+  gm_user_db:
+    image: postgres:15.2
+    container_name: gm_user_db
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: gm_user
+      TZ: America/Hermosillo
+    volumes:
+      - ./DB/postgresql:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gm_user_adminer:
+    image: adminer
+    container_name: gm_user_adminer
+    environment:
+      TZ: America/Hermosillo
+      ADMINER_DESIGN: "ng9"
+    ports:
+      - 8081:8080
+    depends_on:
+      gm_user_db:
+        condition: service_started
