@@ -34,6 +34,8 @@ github.com/zchelalo/go_microservices_domain v0.0.2 h1:TH2MZ37Dt7M7DVlpKSdH4XL7dv
 github.com/zchelalo/go_microservices_domain v0.0.2/go.mod h1:OicrpCwOncnYREpcNochk38CA4IFO+C+FBOYxX1xgTA=
 github.com/zchelalo/go_microservices_meta v0.0.2 h1:EBkASEtOEVGkyDUYdkfVQnxdRC21+kAPYz1QjVzrkGs=
 github.com/zchelalo/go_microservices_meta v0.0.2/go.mod h1:KOT41Ts2ugX9E9DIPQiKz4vr3XQ35R8usfpppxZbS3g=
+github.com/zchelalo/go_microservices_response v0.0.2 h1:Mmez2KXHleMW4G4jAxDJipdItt4QScbuNTdyaLUmgEU=
+github.com/zchelalo/go_microservices_response v0.0.2/go.mod h1:n/vITF3W3oIoO6BAvq/HQnyqWquk7/jHC9XvICntI8g=
 golang.org/x/crypto v0.17.0 h1:r8bRNjWL3GshPW3gkd+RpvzWrZAwPS49OmTGZ/uhM4k=
 golang.org/x/crypto v0.17.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
 golang.org/x/sync v0.1.0 h1:wsuoTGHzEhffawBOhz5CYhcrV4IdKZbEyZjBMuTp12o=

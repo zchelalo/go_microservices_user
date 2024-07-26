@@ -5,14 +5,14 @@ meta {
 }
 
 get {
-  url: {{http}}://{{host}}/users?limit=1&page=2
+  url: {{http}}://{{host}}/users
   body: none
   auth: none
 }
 
 query {
-  limit: 1
-  page: 2
+  ~limit: 1
+  ~page: 2
   ~first_name: Lalo
   ~last_name: Saavedra
 }
