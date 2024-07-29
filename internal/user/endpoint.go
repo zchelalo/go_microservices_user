@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zchelalo/go_microservices_meta/meta"
 	"github.com/zchelalo/go_microservices_response/response"
@@ -68,11 +69,11 @@ func makeCreateEndpoint(service Service) Controller {
 		req := request.(CreateRequest)
 
 		if req.FirstName == "" {
-			return nil, response.BadRequest("first name is required")
+			return nil, response.BadRequest(ErrFirstNameRequired.Error())
 		}
 
 		if req.LastName == "" {
-			return nil, response.BadRequest("last name is required")
+			return nil, response.BadRequest(ErrLastNameRequired.Error())
 		}
 
 		user, err := service.Create(ctx, req.FirstName, req.LastName, req.Email, req.Phone)
@@ -90,7 +91,10 @@ func makeGetEndpoint(service Service) Controller {
 
 		user, err := service.Get(ctx, req.Id)
 		if err != nil {
-			return nil, response.NotFound(err.Error())
+			if errors.As(err, &ErrNotFound{}) {
+				return nil, response.NotFound(err.Error())
+			}
+			return nil, response.InternalServerError(err.Error())
 		}
 
 		return response.OK("success", user, nil), nil
@@ -129,14 +133,18 @@ func makeUpdateEndpoint(service Service) Controller {
 		req := request.(UpdateRequest)
 
 		if req.FirstName != nil && *req.FirstName == "" {
-			return nil, response.BadRequest("first name is required")
+			return nil, response.BadRequest(ErrFirstNameRequired.Error())
 		}
 
 		if req.LastName != nil && *req.LastName == "" {
-			return nil, response.BadRequest("last name is required")
+			return nil, response.BadRequest(ErrLastNameRequired.Error())
 		}
 
-		if err := service.Update(ctx, req.Id, req.FirstName, req.LastName, req.Email, req.Phone); err != nil {
+		err := service.Update(ctx, req.Id, req.FirstName, req.LastName, req.Email, req.Phone)
+		if err != nil {
+			if errors.As(err, &ErrNotFound{}) {
+				return nil, response.NotFound(err.Error())
+			}
 			return nil, response.InternalServerError(err.Error())
 		}
 
@@ -150,6 +158,9 @@ func makeDeleteEndpoint(service Service) Controller {
 
 		err := service.Delete(ctx, req.Id)
 		if err != nil {
+			if errors.As(err, &ErrNotFound{}) {
+				return nil, response.NotFound(err.Error())
+			}
 			return nil, response.InternalServerError(err.Error())
 		}
 
