@@ -42,7 +42,7 @@ func main() {
 	hdler := handler.NewUserHTTPServer(ctx, user.MakeEndpoints(userService, config))
 
 	port := os.Getenv("PORT")
-	address := fmt.Sprintf("127.0.0.1:%s", port)
+	address := fmt.Sprintf("0.0.0.0:%s", port)
 
 	server := &http.Server{
 		// Handler:      http.TimeoutHandler(router, 5*time.Second, "Timeout!"),

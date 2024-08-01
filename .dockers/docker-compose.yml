@@ -2,6 +2,21 @@ version: '3.1'
 
 services:
 
+  gm_user_app:
+    build:
+      context: ../
+      dockerfile: .dockers/Dockerfile
+    container_name: gm_user_app
+    environment:
+      TZ: America/Hermosillo
+    volumes:
+      - ../:/usr/src/app
+    ports:
+      - 8001:8001
+    depends_on:
+      gm_user_db:
+        condition: service_started
+
   gm_user_db:
     image: postgres:15.2
     container_name: gm_user_db
@@ -10,7 +25,7 @@ services:
       POSTGRES_DB: gm_user
       TZ: America/Hermosillo
     volumes:
-      - ./DB/postgresql:/var/lib/postgresql/data
+      - ../DB/postgresql:/var/lib/postgresql/data
     ports:
       - 5433:5432
     healthcheck:
